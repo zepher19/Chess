@@ -1,6 +1,7 @@
 package com.myapps.chess
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
@@ -27,7 +28,7 @@ import kotlin.math.absoluteValue
 
 var boardModel = BoardModel()
 
-val DEFAULT_SQUARE = Square(10, 10, '0', '0', '0')
+val DEFAULT_SQUARE = Square(10, 10, '0', Piece('0', '0'))
 
 var previousHighlightedSquare: Square = DEFAULT_SQUARE
 
@@ -51,7 +52,7 @@ fun chooseModifier(y: Square): Modifier {
         .clickable {
             highlightSquares(y)
         }
-        .border(BorderStroke(borderWidth, Color.Yellow), RectangleShape)
+        .border(BorderStroke(borderWidth, Color.Blue), RectangleShape)
         .padding(borderWidth)
         .clip(RectangleShape)
 
@@ -70,17 +71,27 @@ fun chooseModifier(y: Square): Modifier {
 
 @Composable
 fun Board() {
+
+
+
+
+    //column inputs places the board in the center of the screen
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally) {
 
-        for (x in boardModel.currentBoard) {
+        var y = DEFAULT_SQUARE
+        var modifierToUse: Modifier
+        var drawableID: Int
+
+        for (i in 1 until boardModel.currentBoard.size - 1) {
             Row {
-                for (y in x) {
-                    var modifierToUse = chooseModifier(y)
+                for (j in 1 until boardModel.currentBoard[i].size - 1) {
+                    y = boardModel.currentBoard[i][j]
+                    modifierToUse = chooseModifier(y)
                     determineSquareImage(y)
-                    var drawableID = y.drawableID
+                    drawableID = y.drawableID
                     Image(
                         painter = painterResource(id = drawableID),
                         contentDescription = "draw square",
@@ -94,20 +105,20 @@ fun Board() {
 
 fun determineSquareImage(y: Square) {
     if (y.backgroundColor == 'b') {
-        if (y.pieceColor == '0') {
-            if (y.pieceType == '0') {
+        if (y.piece.pieceColor == '0') {
+            if (y.piece.pieceType == '0') {
                 y.drawableID = R.drawable.brownsquare
             }
         }
 
-        if (y.pieceColor == 'b') {
-            if (y.pieceType == 'p') {
+        if (y.piece.pieceColor == 'b') {
+            if (y.piece.pieceType == 'p') {
                 y.drawableID = R.drawable.blackpawnbrownbackground
             }
         }
 
-        if (y.pieceColor == 'w') {
-            if (y.pieceType == 'p') {
+        if (y.piece.pieceColor == 'w') {
+            if (y.piece.pieceType == 'p') {
                 y.drawableID = R.drawable.whitepawnbrownbackground
             }
         }
@@ -116,20 +127,20 @@ fun determineSquareImage(y: Square) {
 
 
     if (y.backgroundColor == 'w') {
-        if (y.pieceColor == '0') {
-            if (y.pieceType == '0') {
+        if (y.piece.pieceColor == '0') {
+            if (y.piece.pieceType == '0') {
                 y.drawableID = R.drawable.whitesquare
             }
         }
 
-        if (y.pieceColor == 'b') {
-            if (y.pieceType == 'p') {
+        if (y.piece.pieceColor == 'b') {
+            if (y.piece.pieceType == 'p') {
                 y.drawableID = R.drawable.blackpawnwhitebackground
             }
         }
 
-        if (y.pieceColor == 'w') {
-            if (y.pieceType == 'p') {
+        if (y.piece.pieceColor == 'w') {
+            if (y.piece.pieceType == 'p') {
                 y.drawableID = R.drawable.whitepawnwhitebackground
             }
         }
@@ -138,13 +149,12 @@ fun determineSquareImage(y: Square) {
 
 fun highlightSquares(y: Square) {
 
-
     //prevents empty spaces from being highlighted
-    if (y.pieceColor == '0' && previousHighlightedSquare.pieceColor == '0')
+    if (y.piece.pieceColor == '0' && previousHighlightedSquare.piece.pieceColor == '0')
         return
 
     //prevents pieces from deleting their own color
-    if (y.pieceColor == previousHighlightedSquare.pieceColor) {
+    if (y.piece.pieceColor == previousHighlightedSquare.piece.pieceColor) {
         boardModel.unhighlight()
         previousHighlightedSquare = DEFAULT_SQUARE
     }
@@ -168,14 +178,17 @@ fun highlightSquares(y: Square) {
 
 fun movePiece(y: Square) {
 
+    //TODO working here
+
     //draw piece in new spot
-    boardModel.currentBoard[y.row][y.index].pieceType = previousHighlightedSquare.pieceType
-    boardModel.currentBoard[y.row][y.index].pieceColor = previousHighlightedSquare.pieceColor
+    boardModel.currentBoard[y.row][y.index].piece.pieceType = previousHighlightedSquare.piece.pieceType
+    boardModel.currentBoard[y.row][y.index].piece.pieceColor = previousHighlightedSquare.piece.pieceColor
+    boardModel.currentBoard[y.row][y.index].piece.firstMove = false
 
 
     //delete piece from old spot
-    boardModel.currentBoard[previousHighlightedSquare.row][previousHighlightedSquare.index].pieceType = '0'
-    boardModel.currentBoard[previousHighlightedSquare.row][previousHighlightedSquare.index].pieceColor = '0'
+    boardModel.currentBoard[previousHighlightedSquare.row][previousHighlightedSquare.index].piece.pieceType = '0'
+    boardModel.currentBoard[previousHighlightedSquare.row][previousHighlightedSquare.index].piece.pieceColor = '0'
 
     //unhighlight after move
     boardModel.unhighlight()
@@ -186,51 +199,54 @@ fun movePiece(y: Square) {
 
 
 fun highlightMoves(y: Square) {
+    var enemy = 'x'
+    var advance1 = 0
+    var advance2 = 0
+    val rowBound1 = 0
+    val rowBound2 = 7
+    val indexBound1 = 0
+    val indexBound2 = 7
 
     //black piece
-    if (y.pieceColor == 'w') {
-
-        var nearEnemy  = false
-
-        //if there is a white piece adjacent
-        if (boardModel.currentBoard[y.row - 1][y.index - 1].pieceColor == 'b') {
-            boardModel.currentBoard[y.row - 1][y.index - 1].highlighted.value = true
-            nearEnemy = true
-        }
-
-        if (boardModel.currentBoard[y.row - 1][y.index + 1].pieceColor == 'b') {
-            boardModel.currentBoard[y.row - 1][y.index + 1].highlighted.value = true
-            nearEnemy = true
-        }
-
-        if (!nearEnemy) {
-            //highlight adjacent black square
-            if (boardModel.currentBoard[y.row - 1][y.index].pieceColor == '0')
-                boardModel.currentBoard[y.row - 1][y.index].highlighted.value = true
-        }
+    if (y.piece.pieceColor == 'w') {
+        enemy = 'b'
+        advance1 = -1
+        advance2 = -2
+    }
+    else {
+        enemy = 'w'
+        advance1 = 1
+        advance2 = 2
     }
 
-    //white piece
-    if (y.pieceColor == 'b') {
+    //pawn logic
+    if (y.piece.pieceType =='p') {
 
-        var nearEnemy  = false
-
-        //if there is a white piece adjacent
-        if (boardModel.currentBoard[y.row + 1][y.index - 1].pieceColor == 'b') {
-            boardModel.currentBoard[y.row + 1][y.index - 1].highlighted.value = true
-            nearEnemy = true
+        //logic for moving two spaces instead of one
+        if (y.piece.firstMove) {
+            boardModel.currentBoard[y.row + advance2][y.index].highlighted.value = true
         }
 
-        if (boardModel.currentBoard[y.row + 1][y.index + 1].pieceColor == 'b') {
-            boardModel.currentBoard[y.row + 1][y.index + 1].highlighted.value = true
-            nearEnemy = true
-        }
+            if (y.row in (rowBound1 + 1) until rowBound2) {
 
-        if (!nearEnemy) {
-            //highlight adjacent black square
-            if (boardModel.currentBoard[y.row + 1][y.index].pieceColor == '0')
-                boardModel.currentBoard[y.row + 1][y.index].highlighted.value = true
-        }
+
+                if (y.index > indexBound1) {
+                    //if there is a white piece adjacent
+                    if (boardModel.currentBoard[y.row + advance1][y.index - 1].piece.pieceColor == enemy) {
+                        boardModel.currentBoard[y.row + advance1][y.index - 1].highlighted.value = true
+                    }
+                }
+
+                if (y.index < indexBound2) {
+                    if (boardModel.currentBoard[y.row +advance1][y.index + 1].piece.pieceColor == enemy) {
+                        boardModel.currentBoard[y.row + advance1][y.index + 1].highlighted.value = true
+                    }
+                }
+
+                //highlight adjacent square
+                if (boardModel.currentBoard[y.row + advance1][y.index].piece.pieceColor == '0')
+                    boardModel.currentBoard[y.row + advance1][y.index].highlighted.value = true
+                }
     }
 }
 
