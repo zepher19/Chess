@@ -1,7 +1,6 @@
 package com.myapps.chess
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
@@ -23,7 +22,6 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import kotlin.math.absoluteValue
 
 
 var boardModel = BoardModel()
@@ -115,6 +113,9 @@ fun determineSquareImage(y: Square) {
             if (y.piece.pieceType == 'c') {
                 y.drawableID = R.drawable.blackcastlebrownbackground
             }
+            if (y.piece.pieceType == 'b') {
+                y.drawableID = R.drawable.blackbishopbrownbackground
+            }
         }
 
         if (y.piece.pieceColor == 'w') {
@@ -123,6 +124,9 @@ fun determineSquareImage(y: Square) {
             }
             if (y.piece.pieceType == 'c') {
                 y.drawableID = R.drawable.whitecastlebrownbackground
+            }
+            if (y.piece.pieceType == 'b') {
+                y.drawableID = R.drawable.whitebishopbrownbackground
             }
         }
     }
@@ -142,6 +146,9 @@ fun determineSquareImage(y: Square) {
             if (y.piece.pieceType == 'c') {
                 y.drawableID = R.drawable.blackcastlewhitebackground
             }
+            if (y.piece.pieceType == 'b') {
+                y.drawableID = R.drawable.blackbishopwhitebackground
+            }
         }
 
         if (y.piece.pieceColor == 'w') {
@@ -150,6 +157,9 @@ fun determineSquareImage(y: Square) {
             }
             if (y.piece.pieceType == 'c') {
                 y.drawableID = R.drawable.whitecastlewhitebackground
+            }
+            if (y.piece.pieceType == 'b') {
+                y.drawableID = R.drawable.whitebishopwhitebackground
             }
         }
     }
@@ -246,100 +256,210 @@ fun highlightMoves(y: Square) {
 
     //castle logic
     if (y.piece.pieceType =='c') {
-        var a = 0
-        var b = 0
-        var c = 0
-        var d = 0
+        castleLogic(y, enemy)
+    }
 
-        //white castle
-        if (y.piece.pieceColor == 'w') {
-            a = -1
-            b = 1
-            c = 1
-            d = -1
+    if (y.piece.pieceType == 'b') {
+        bishopLogic(y, enemy)
+    }
+
+
+}
+
+fun bishopLogic(y: Square, enemy: Char) {
+    var a = 0
+    var b = 0
+    var c = 0
+    var d = 0
+
+    //white castle
+    if (y.piece.pieceColor == 'w') {
+        a = -1
+        b = 1
+        c = 1
+        d = -1
+    }
+    //black castle
+    else {
+        a = 1
+        b = -1
+        c = -1
+        d = 1
+    }
+
+    //
+    //keep highlighting till you hit enemy, edge of board, or ally
+    while (boardModel.currentBoard[y.row + a][y.index + a].piece.pieceColor != enemy &&
+        boardModel.currentBoard[y.row + a][y.index + a].piece.pieceColor != 'x' &&
+        boardModel.currentBoard[y.row + a][y.index + a].piece.pieceColor != y.piece.pieceColor) {
+
+        boardModel.currentBoard[y.row + a][y.index + a].highlighted.value = true
+
+        if (a > 0) {
+            a++
         }
-        //black castle
         else {
-            a = 1
-            b = -1
-            c = -1
-            d = 1
+            a--
         }
+    }
+    if (boardModel.currentBoard[y.row + a][y.index + a].piece.pieceColor == enemy) {
+        boardModel.currentBoard[y.row + a][y.index + a].highlighted.value = true
+    }
 
-        //moving forward
-        //keep highlighting till you hit enemy, edge of board, or ally
-        while (boardModel.currentBoard[y.row + a][y.index].piece.pieceColor != enemy &&
-            boardModel.currentBoard[y.row + a][y.index].piece.pieceColor != 'x' &&
-            boardModel.currentBoard[y.row + a][y.index].piece.pieceColor != y.piece.pieceColor) {
+    //moving backwards
+    while (boardModel.currentBoard[y.row + b][y.index + b].piece.pieceColor != enemy &&
+        boardModel.currentBoard[y.row + b][y.index + b].piece.pieceColor != 'x' &&
+        boardModel.currentBoard[y.row + b][y.index + b].piece.pieceColor != y.piece.pieceColor) {
 
-            boardModel.currentBoard[y.row + a][y.index].highlighted.value = true
+        boardModel.currentBoard[y.row + b][y.index + b].highlighted.value = true
 
-            if (a > 0) {
-                a++
-            }
-            else {
-                a--
-            }
+        if (b > 0) {
+            b++
         }
-        if (boardModel.currentBoard[y.row + a][y.index].piece.pieceColor == enemy) {
-            boardModel.currentBoard[y.row + a][y.index].highlighted.value = true
+        else {
+            b--
         }
+    }
+    if (boardModel.currentBoard[y.row + b][y.index + b].piece.pieceColor == enemy) {
+        boardModel.currentBoard[y.row + b][y.index + b].highlighted.value = true
+    }
 
-        //moving backwards
-        while (boardModel.currentBoard[y.row + b][y.index].piece.pieceColor != enemy &&
-            boardModel.currentBoard[y.row + b][y.index].piece.pieceColor != 'x' &&
-            boardModel.currentBoard[y.row + b][y.index].piece.pieceColor != y.piece.pieceColor) {
 
-            boardModel.currentBoard[y.row + b][y.index].highlighted.value = true
+    //moving right
+    while (boardModel.currentBoard[y.row + c][y.index - c].piece.pieceColor != enemy &&
+        boardModel.currentBoard[y.row + c][y.index - c].piece.pieceColor != 'x' &&
+        boardModel.currentBoard[y.row + c][y.index - c].piece.pieceColor != y.piece.pieceColor) {
 
-            if (b > 0) {
-                b++
-            }
-            else {
-                b--
-            }
+        boardModel.currentBoard[y.row + c][y.index - c].highlighted.value = true
+
+        if (c > 0) {
+            c++
         }
-        if (boardModel.currentBoard[y.row + b][y.index].piece.pieceColor == enemy) {
-            boardModel.currentBoard[y.row + b][y.index].highlighted.value = true
+        else {
+            c--
         }
+    }
 
-        //moving right
-        while (boardModel.currentBoard[y.row][y.index + c].piece.pieceColor != enemy &&
-            boardModel.currentBoard[y.row][y.index + c].piece.pieceColor != 'x' &&
-            boardModel.currentBoard[y.row][y.index + c].piece.pieceColor != y.piece.pieceColor) {
+    if (boardModel.currentBoard[y.row + c][y.index - c].piece.pieceColor == enemy) {
+        boardModel.currentBoard[y.row + c][y.index - c].highlighted.value = true
+    }
 
-            boardModel.currentBoard[y.row][y.index + c].highlighted.value = true
 
-            if (c > 0) {
-                c++
-            }
-            else {
-                c--
-            }
+    //moving left
+    while (boardModel.currentBoard[y.row + d][y.index - d].piece.pieceColor != enemy &&
+        boardModel.currentBoard[y.row + d][y.index - d].piece.pieceColor != 'x' &&
+        boardModel.currentBoard[y.row + d][y.index - d].piece.pieceColor != y.piece.pieceColor) {
+
+        boardModel.currentBoard[y.row + d][y.index - d].highlighted.value = true
+        if (d > 0) {
+            d++
         }
-
-        if (boardModel.currentBoard[y.row][y.index + c].piece.pieceColor == enemy) {
-            boardModel.currentBoard[y.row][y.index + c].highlighted.value = true
+        else {
+            d--
         }
+    }
+
+    if (boardModel.currentBoard[y.row + d][y.index - d].piece.pieceColor == enemy) {
+        boardModel.currentBoard[y.row + d][y.index - d].highlighted.value = true
+    }
 
 
-        //moving left
-        while (boardModel.currentBoard[y.row][y.index + d].piece.pieceColor != enemy &&
-            boardModel.currentBoard[y.row][y.index + d].piece.pieceColor != 'x' &&
-            boardModel.currentBoard[y.row][y.index + d].piece.pieceColor != y.piece.pieceColor) {
+}
 
-            boardModel.currentBoard[y.row][y.index + d].highlighted.value = true
-            if (d > 0) {
-                d++
-            }
-            else {
-                d--
-            }
+fun castleLogic(y: Square, enemy: Char) {
+    var a = 0
+    var b = 0
+    var c = 0
+    var d = 0
+
+    //white castle
+    if (y.piece.pieceColor == 'w') {
+        a = -1
+        b = 1
+        c = 1
+        d = -1
+    }
+    //black castle
+    else {
+        a = 1
+        b = -1
+        c = -1
+        d = 1
+    }
+
+    //moving forward
+    //keep highlighting till you hit enemy, edge of board, or ally
+    while (boardModel.currentBoard[y.row + a][y.index].piece.pieceColor != enemy &&
+        boardModel.currentBoard[y.row + a][y.index].piece.pieceColor != 'x' &&
+        boardModel.currentBoard[y.row + a][y.index].piece.pieceColor != y.piece.pieceColor) {
+
+        boardModel.currentBoard[y.row + a][y.index].highlighted.value = true
+
+        if (a > 0) {
+            a++
         }
-
-        if (boardModel.currentBoard[y.row][y.index + d].piece.pieceColor == enemy) {
-            boardModel.currentBoard[y.row][y.index + d].highlighted.value = true
+        else {
+            a--
         }
+    }
+    if (boardModel.currentBoard[y.row + a][y.index].piece.pieceColor == enemy) {
+        boardModel.currentBoard[y.row + a][y.index].highlighted.value = true
+    }
+
+    //moving backwards
+    while (boardModel.currentBoard[y.row + b][y.index].piece.pieceColor != enemy &&
+        boardModel.currentBoard[y.row + b][y.index].piece.pieceColor != 'x' &&
+        boardModel.currentBoard[y.row + b][y.index].piece.pieceColor != y.piece.pieceColor) {
+
+        boardModel.currentBoard[y.row + b][y.index].highlighted.value = true
+
+        if (b > 0) {
+            b++
+        }
+        else {
+            b--
+        }
+    }
+    if (boardModel.currentBoard[y.row + b][y.index].piece.pieceColor == enemy) {
+        boardModel.currentBoard[y.row + b][y.index].highlighted.value = true
+    }
+
+    //moving right
+    while (boardModel.currentBoard[y.row][y.index + c].piece.pieceColor != enemy &&
+        boardModel.currentBoard[y.row][y.index + c].piece.pieceColor != 'x' &&
+        boardModel.currentBoard[y.row][y.index + c].piece.pieceColor != y.piece.pieceColor) {
+
+        boardModel.currentBoard[y.row][y.index + c].highlighted.value = true
+
+        if (c > 0) {
+            c++
+        }
+        else {
+            c--
+        }
+    }
+
+    if (boardModel.currentBoard[y.row][y.index + c].piece.pieceColor == enemy) {
+        boardModel.currentBoard[y.row][y.index + c].highlighted.value = true
+    }
+
+
+    //moving left
+    while (boardModel.currentBoard[y.row][y.index + d].piece.pieceColor != enemy &&
+        boardModel.currentBoard[y.row][y.index + d].piece.pieceColor != 'x' &&
+        boardModel.currentBoard[y.row][y.index + d].piece.pieceColor != y.piece.pieceColor) {
+
+        boardModel.currentBoard[y.row][y.index + d].highlighted.value = true
+        if (d > 0) {
+            d++
+        }
+        else {
+            d--
+        }
+    }
+
+    if (boardModel.currentBoard[y.row][y.index + d].piece.pieceColor == enemy) {
+        boardModel.currentBoard[y.row][y.index + d].highlighted.value = true
     }
 }
 
