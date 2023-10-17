@@ -99,6 +99,8 @@ fun Board() {
 }
 
 fun determineSquareImage(y: Square) {
+
+    //if brown background
     if (y.backgroundColor == 'b') {
         if (y.piece.pieceColor == '0') {
             if (y.piece.pieceType == '0') {
@@ -106,6 +108,7 @@ fun determineSquareImage(y: Square) {
             }
         }
 
+        //if black piece
         if (y.piece.pieceColor == 'b') {
             if (y.piece.pieceType == 'p') {
                 y.drawableID = R.drawable.blackpawnbrownbackground
@@ -116,8 +119,20 @@ fun determineSquareImage(y: Square) {
             if (y.piece.pieceType == 'b') {
                 y.drawableID = R.drawable.blackbishopbrownbackground
             }
+            if (y.piece.pieceType == 'n') {
+                y.drawableID = R.drawable.blacknightbrownbackground
+            }
+            if (y.piece.pieceType == 'q') {
+                y.drawableID = R.drawable.blackqueenbrownbackground
+            }
+            if (y.piece.pieceType == 'k') {
+                y.drawableID = R.drawable.blackkingbrownbackground
+            }
+
+
         }
 
+        //if white piece
         if (y.piece.pieceColor == 'w') {
             if (y.piece.pieceType == 'p') {
                 y.drawableID = R.drawable.whitepawnbrownbackground
@@ -128,10 +143,20 @@ fun determineSquareImage(y: Square) {
             if (y.piece.pieceType == 'b') {
                 y.drawableID = R.drawable.whitebishopbrownbackground
             }
+            if (y.piece.pieceType == 'n') {
+                y.drawableID = R.drawable.whitenightbrownbackground
+            }
+            if (y.piece.pieceType == 'q') {
+                y.drawableID = R.drawable.whitequeenbrownbackground
+            }
+            if (y.piece.pieceType == 'k') {
+                y.drawableID = R.drawable.whitekingbrownbackground
+            }
         }
     }
 
 
+    //if white background
     if (y.backgroundColor == 'w') {
         if (y.piece.pieceColor == '0') {
             if (y.piece.pieceType == '0') {
@@ -139,6 +164,7 @@ fun determineSquareImage(y: Square) {
             }
         }
 
+        //if black piece
         if (y.piece.pieceColor == 'b') {
             if (y.piece.pieceType == 'p') {
                 y.drawableID = R.drawable.blackpawnwhitebackground
@@ -149,8 +175,19 @@ fun determineSquareImage(y: Square) {
             if (y.piece.pieceType == 'b') {
                 y.drawableID = R.drawable.blackbishopwhitebackground
             }
+            if (y.piece.pieceType == 'n') {
+                y.drawableID = R.drawable.blacknightwhitebackground
+            }
+            if (y.piece.pieceType == 'q') {
+                y.drawableID = R.drawable.blackqueenwhitebackground
+            }
+            if (y.piece.pieceType == 'k') {
+                y.drawableID = R.drawable.blackkingwhitebackground
+            }
+
         }
 
+        //if white piece
         if (y.piece.pieceColor == 'w') {
             if (y.piece.pieceType == 'p') {
                 y.drawableID = R.drawable.whitepawnwhitebackground
@@ -160,6 +197,15 @@ fun determineSquareImage(y: Square) {
             }
             if (y.piece.pieceType == 'b') {
                 y.drawableID = R.drawable.whitebishopwhitebackground
+            }
+            if (y.piece.pieceType == 'n') {
+                y.drawableID = R.drawable.whitenightwhitebackground
+            }
+            if (y.piece.pieceType == 'q') {
+                y.drawableID = R.drawable.whitequeenwhitebackground
+            }
+            if (y.piece.pieceType == 'k') {
+                y.drawableID = R.drawable.whitekingwhitebackground
             }
         }
     }
@@ -195,9 +241,6 @@ fun highlightSquares(y: Square) {
 }
 
 fun movePiece(y: Square) {
-
-    //TODO working here
-
     //draw piece in new spot
     boardModel.currentBoard[y.row][y.index].piece.pieceType = previousHighlightedSquare.piece.pieceType
     boardModel.currentBoard[y.row][y.index].piece.pieceColor = previousHighlightedSquare.piece.pieceColor
@@ -217,7 +260,7 @@ fun movePiece(y: Square) {
 
 
 fun highlightMoves(y: Square) {
-    var enemy = 'x'
+    var enemy = 'z'
     var advance1 = 0
     var advance2 = 0
 
@@ -236,34 +279,277 @@ fun highlightMoves(y: Square) {
 
     //pawn logic
     if (y.piece.pieceType =='p') {
-        //logic for moving two spaces instead of one
-        if (y.piece.firstMove) {
-            boardModel.currentBoard[y.row + advance2][y.index].highlighted.value = true
-        }
-        //if there is an enemy piece adjacent left
-        if (boardModel.currentBoard[y.row + advance1][y.index - 1].piece.pieceColor == enemy) {
-            boardModel.currentBoard[y.row + advance1][y.index - 1].highlighted.value = true
-        }
-        //if there is an enemy piece adjacent right
-        if (boardModel.currentBoard[y.row + advance1][y.index + 1].piece.pieceColor == enemy) {
-            boardModel.currentBoard[y.row + advance1][y.index + 1].highlighted.value = true
-        }
-        //highlight one space straight forward
-        if (boardModel.currentBoard[y.row + advance1][y.index].piece.pieceColor == '0')
-            boardModel.currentBoard[y.row + advance1][y.index].highlighted.value = true
+        pawnLogic(y, enemy, advance1, advance2)
     }
-
 
     //castle logic
     if (y.piece.pieceType =='c') {
         castleLogic(y, enemy)
     }
 
+    //bishop logic
     if (y.piece.pieceType == 'b') {
         bishopLogic(y, enemy)
     }
 
+    //knight logic
+    if (y.piece.pieceType == 'n') {
+        nightLogic(y, enemy)
+    }
 
+    //queen logic
+    if (y.piece.pieceType == 'q') {
+        castleLogic(y, enemy)
+        bishopLogic(y, enemy)
+    }
+    //king logic
+    if (y.piece.pieceType == 'k') {
+        kingLogic(y,enemy)
+    }
+}
+
+fun kingLogic(y: Square, enemy: Char) {
+    var move0 = true
+    var move1 = true
+    var move2 = true
+    var move3 = true
+    var move4 = true
+    var move5 = true
+    var move6 = true
+    var move7 = true
+
+    val square0 = boardModel.currentBoard[y.row - 1][y.index - 1]
+    val square1 = boardModel.currentBoard[y.row - 1][y.index]
+    val square2 = boardModel.currentBoard[y.row - 1][y.index + 1]
+    val square3 = boardModel.currentBoard[y.row][y.index + 1]
+    val square4 = boardModel.currentBoard[y.row + 1][y.index + 1]
+    val square5 = boardModel.currentBoard[y.row + 1][y.index]
+    val square6 = boardModel.currentBoard[y.row + 1][y.index - 1]
+    val square7 = boardModel.currentBoard[y.row][y.index - 1]
+
+    val kingMoveSquares = listOf<Square>(square0, square1, square2, square3, square4, square5, square6, square7)
+
+
+    //first detect which moves are open based purely on open spots
+    if (square0.piece.pieceColor == y.piece.pieceColor
+        || square0.piece.pieceColor == 'x') {
+        move0 = false
+    }
+    if (square1.piece.pieceColor == y.piece.pieceColor
+        || square1.piece.pieceColor == 'x') {
+        move1 = false
+    }
+    if (square2.piece.pieceColor == y.piece.pieceColor
+        || square2.piece.pieceColor == 'x') {
+        move2 = false
+    }
+    if (square3.piece.pieceColor == y.piece.pieceColor
+        || square3.piece.pieceColor == 'x') {
+        move3 = false
+    }
+    if (square4.piece.pieceColor == y.piece.pieceColor
+        || square4.piece.pieceColor == 'x') {
+        move4 = false
+    }
+    if (square5.piece.pieceColor == y.piece.pieceColor
+        || square5.piece.pieceColor == 'x') {
+        move5 = false
+    }
+    if (square6.piece.pieceColor == y.piece.pieceColor
+        || square6.piece.pieceColor == 'x') {
+        move6 = false
+    }
+    if (square7.piece.pieceColor == y.piece.pieceColor
+        || square7.piece.pieceColor == 'x') {
+        move7 = false
+    }
+
+    //iterate through all enemy pieces and see which spots they could attack
+    for (i in boardModel.currentBoard) {
+        for (j in i) {
+            if (j.piece.pieceColor == enemy) {
+                //if j is a pawn check pawn moves to see if they could attack after the king moves
+                //do the same for every type of piece
+                checkMoves(j, kingMoveSquares)
+            }
+        }
+    }
+
+
+}
+
+fun checkMoves(j: Square, kingMoveSquares: List<Square>) {
+    var enemy = 'z'
+    var advance1 = 0
+    var advance2 = 0
+
+    //white piece
+    if (j.piece.pieceColor == 'w') {
+        enemy = 'b'
+        advance1 = -1
+        advance2 = -2
+    }
+    //black piece
+    else {
+        enemy = 'w'
+        advance1 = 1
+        advance2 = 2
+    }
+
+    //pawn logic
+    if (j.piece.pieceType =='p') {
+        checkMovesPawn(j, enemy, advance1, advance2, kingMoveSquares)
+    }
+
+    //castle logic
+    if (j.piece.pieceType =='c') {
+        castleLogic(j, enemy)
+    }
+
+    //bishop logic
+    if (j.piece.pieceType == 'b') {
+        bishopLogic(j, enemy)
+    }
+
+    //knight logic
+    if (j.piece.pieceType == 'n') {
+        nightLogic(j, enemy)
+    }
+
+    //queen logic
+    if (j.piece.pieceType == 'q') {
+        castleLogic(j, enemy)
+        bishopLogic(j, enemy)
+    }
+    //king logic
+    if (j.piece.pieceType == 'k') {
+        kingLogic(j,enemy)
+    }
+}
+
+fun checkMovesPawn(
+    y: Square,
+    enemy: Char,
+    advance1: Int,
+    advance2: Int,
+    kingMoveSquares: List<Square>,
+    ) {
+
+
+    for (i in kingMoveSquares) {
+
+    }
+
+
+    //if there is an enemy piece adjacent left
+    if (boardModel.currentBoard[y.row + advance1][y.index - 1] == kingMoveSquares[0]) {
+        boardModel.currentBoard[y.row + advance1][y.index - 1].highlighted.value = true
+    }
+    //if there is an enemy piece adjacent right
+    if (boardModel.currentBoard[y.row + advance1][y.index + 1].piece.pieceColor == enemy) {
+        boardModel.currentBoard[y.row + advance1][y.index + 1].highlighted.value = true
+    }
+    //highlight one space straight forward
+    if (boardModel.currentBoard[y.row + advance1][y.index].piece.pieceColor == '0')
+        boardModel.currentBoard[y.row + advance1][y.index].highlighted.value = true
+
+
+}
+
+fun nightLogic(y: Square, enemy: Char) {
+    if (boardModel.currentBoard[y.row - 1][y.index].piece.pieceColor != 'x') {
+        if (boardModel.currentBoard[y.row - 2][y.index].piece.pieceColor != 'x') {
+            if (boardModel.currentBoard[y.row - 2][y.index - 1].piece.pieceColor == enemy ||
+                boardModel.currentBoard[y.row - 2][y.index - 1].piece.pieceColor == '0') {
+                boardModel.currentBoard[y.row - 2][y.index - 1].highlighted.value = true
+            }
+        }
+    }
+
+    if (boardModel.currentBoard[y.row - 1][y.index].piece.pieceColor != 'x') {
+        if (boardModel.currentBoard[y.row - 2][y.index].piece.pieceColor != 'x') {
+            if (boardModel.currentBoard[y.row - 2][y.index + 1].piece.pieceColor == enemy ||
+                boardModel.currentBoard[y.row - 2][y.index + 1].piece.pieceColor == '0') {
+                boardModel.currentBoard[y.row - 2][y.index + 1].highlighted.value = true
+            }
+        }
+    }
+
+    if (boardModel.currentBoard[y.row - 1][y.index].piece.pieceColor != 'x') {
+        if (boardModel.currentBoard[y.row - 1][y.index + 1].piece.pieceColor != 'x') {
+            if (boardModel.currentBoard[y.row - 1][y.index + 2].piece.pieceColor == enemy ||
+                boardModel.currentBoard[y.row - 1][y.index + 2].piece.pieceColor == '0') {
+                boardModel.currentBoard[y.row - 1][y.index + 2].highlighted.value = true
+            }
+        }
+    }
+
+    if (boardModel.currentBoard[y.row + 1][y.index].piece.pieceColor != 'x') {
+        if (boardModel.currentBoard[y.row + 1][y.index + 1].piece.pieceColor != 'x') {
+            if (boardModel.currentBoard[y.row + 1][y.index + 2].piece.pieceColor == enemy ||
+                boardModel.currentBoard[y.row + 1][y.index + 2].piece.pieceColor == '0') {
+                boardModel.currentBoard[y.row + 1][y.index + 2].highlighted.value = true
+            }
+        }
+    }
+
+    if (boardModel.currentBoard[y.row + 1][y.index].piece.pieceColor != 'x') {
+        if (boardModel.currentBoard[y.row + 2][y.index].piece.pieceColor != 'x') {
+            if (boardModel.currentBoard[y.row + 2][y.index + 1].piece.pieceColor == enemy ||
+                boardModel.currentBoard[y.row + 2][y.index + 1].piece.pieceColor == '0') {
+                boardModel.currentBoard[y.row + 2][y.index + 1].highlighted.value = true
+            }
+        }
+    }
+
+    if (boardModel.currentBoard[y.row + 1][y.index].piece.pieceColor != 'x') {
+        if (boardModel.currentBoard[y.row + 2][y.index].piece.pieceColor != 'x') {
+            if (boardModel.currentBoard[y.row + 2][y.index - 1].piece.pieceColor == enemy ||
+                boardModel.currentBoard[y.row + 2][y.index - 1].piece.pieceColor == '0') {
+                boardModel.currentBoard[y.row + 2][y.index - 1].highlighted.value = true
+            }
+        }
+    }
+
+    if (boardModel.currentBoard[y.row + 1][y.index].piece.pieceColor != 'x') {
+        if (boardModel.currentBoard[y.row + 1][y.index - 1].piece.pieceColor != 'x') {
+            if (boardModel.currentBoard[y.row + 1][y.index - 2].piece.pieceColor == enemy ||
+                boardModel.currentBoard[y.row + 1][y.index - 2].piece.pieceColor == '0') {
+                boardModel.currentBoard[y.row + 1][y.index - 2].highlighted.value = true
+            }
+        }
+    }
+
+
+    if (boardModel.currentBoard[y.row - 1][y.index].piece.pieceColor != 'x') {
+        if (boardModel.currentBoard[y.row - 1][y.index - 1].piece.pieceColor != 'x') {
+            if (boardModel.currentBoard[y.row - 1][y.index - 2].piece.pieceColor == enemy ||
+                boardModel.currentBoard[y.row - 1][y.index - 2].piece.pieceColor == '0') {
+                boardModel.currentBoard[y.row - 1][y.index - 2].highlighted.value = true
+            }
+        }
+    }
+
+
+
+}
+
+fun pawnLogic(y: Square, enemy: Char, advance1: Int, advance2: Int) {
+//logic for moving two spaces instead of one
+    if (y.piece.firstMove) {
+        boardModel.currentBoard[y.row + advance2][y.index].highlighted.value = true
+    }
+    //if there is an enemy piece adjacent left
+    if (boardModel.currentBoard[y.row + advance1][y.index - 1].piece.pieceColor == enemy) {
+        boardModel.currentBoard[y.row + advance1][y.index - 1].highlighted.value = true
+    }
+    //if there is an enemy piece adjacent right
+    if (boardModel.currentBoard[y.row + advance1][y.index + 1].piece.pieceColor == enemy) {
+        boardModel.currentBoard[y.row + advance1][y.index + 1].highlighted.value = true
+    }
+    //highlight one space straight forward
+    if (boardModel.currentBoard[y.row + advance1][y.index].piece.pieceColor == '0')
+        boardModel.currentBoard[y.row + advance1][y.index].highlighted.value = true
 }
 
 fun bishopLogic(y: Square, enemy: Char) {
