@@ -419,17 +419,23 @@ fun checkMoves(j: Square, kingMoveSquares: List<Square>) {
         }
     }
 
+
+    //queen logic
+    if (j.piece.pieceType == 'q') {
+        for (i in kingMoveSquares.indices) {
+            checkMovesCastle(j, enemy, kingMoveSquares, i)
+            checkMovesBishop(j, enemy, kingMoveSquares, i)
+        }
+    }
+
     /*
+
+
     //knight logic
     if (j.piece.pieceType == 'n') {
         nightLogic(j, enemy)
     }
 
-    //queen logic
-    if (j.piece.pieceType == 'q') {
-        castleLogic(j, enemy)
-        bishopLogic(j, enemy)
-    }
     //king logic
     if (j.piece.pieceType == 'k') {
         kingLogic(j,enemy)
