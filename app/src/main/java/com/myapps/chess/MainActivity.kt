@@ -64,7 +64,7 @@ fun chooseModifier(y: Square): Modifier {
         .clickable {
             highlightSquares(y)
         }
-        .border(BorderStroke(borderWidth, Color.Blue), RectangleShape)
+        .border(BorderStroke(borderWidth, Color.Yellow), RectangleShape)
         .padding(borderWidth)
         .clip(RectangleShape)
 
@@ -337,7 +337,7 @@ fun kingLogic(y: Square, enemy: Char) {
 
 
     //first detect which moves are open based purely on open spots
-    for (i in 0 until moves.size) {
+    for (i in moves.indices) {
         if (kingMoveSquares[i].piece.pieceColor == y.piece.pieceColor
             || kingMoveSquares[i].piece.pieceColor == 'x') {
             moves[i] = false
@@ -365,9 +365,6 @@ fun kingLogic(y: Square, enemy: Char) {
     }
 
     highlightKingMoves(kingMoveSquares)
-    //print to console
-    var movesList = moves.toList()
-    Log.d("Moves", movesList.toString())
 }
 
 fun highlightKingMoves(kingMoveSquares: List<Square>) {
@@ -402,6 +399,7 @@ fun checkMoves(j: Square, kingMoveSquares: List<Square>) {
     if (j.piece.pieceType =='p') {
         for (i in kingMoveSquares.indices) {
             checkMovesPawn(j, enemy, advance1, advance2, kingMoveSquares, i)
+            unWouldBeHighlighted()
         }
     }
 
@@ -409,6 +407,7 @@ fun checkMoves(j: Square, kingMoveSquares: List<Square>) {
     if (j.piece.pieceType =='c') {
         for (i in kingMoveSquares.indices) {
             checkMovesCastle(j, enemy, kingMoveSquares, i)
+            unWouldBeHighlighted()
         }
     }
 
@@ -416,6 +415,7 @@ fun checkMoves(j: Square, kingMoveSquares: List<Square>) {
     if (j.piece.pieceType == 'b') {
         for (i in kingMoveSquares.indices) {
             checkMovesBishop(j, enemy, kingMoveSquares, i)
+            unWouldBeHighlighted()
         }
     }
 
@@ -425,23 +425,129 @@ fun checkMoves(j: Square, kingMoveSquares: List<Square>) {
         for (i in kingMoveSquares.indices) {
             checkMovesCastle(j, enemy, kingMoveSquares, i)
             checkMovesBishop(j, enemy, kingMoveSquares, i)
+            unWouldBeHighlighted()
         }
     }
-
-    /*
 
 
     //knight logic
     if (j.piece.pieceType == 'n') {
-        nightLogic(j, enemy)
+        for (i in kingMoveSquares.indices) {
+            checkMovesKnight(j, enemy, kingMoveSquares, i)
+            unWouldBeHighlighted()
+        }
     }
+
 
     //king logic
     if (j.piece.pieceType == 'k') {
-        kingLogic(j,enemy)
+        for (i in kingMoveSquares.indices) {
+            checkMovesKing(j, enemy, kingMoveSquares, i)
+            unWouldBeHighlighted()
+        }
     }
 
-     */
+}
+
+fun checkMovesKing(y: Square, enemy: Char, kingMoveSquares: List<Square>, i: Int) {
+    boardModel.currentBoard[y.row - 1][y.index - 1].wouldBeHighlighted = true
+    boardModel.currentBoard[y.row - 1][y.index].wouldBeHighlighted = true
+    boardModel.currentBoard[y.row - 1][y.index + 1].wouldBeHighlighted = true
+    boardModel.currentBoard[y.row][y.index + 1].wouldBeHighlighted = true
+    boardModel.currentBoard[y.row + 1][y.index + 1].wouldBeHighlighted = true
+    boardModel.currentBoard[y.row + 1][y.index].wouldBeHighlighted = true
+    boardModel.currentBoard[y.row + 1][y.index - 1].wouldBeHighlighted = true
+    boardModel.currentBoard[y.row][y.index - 1].wouldBeHighlighted = true
+
+
+    for (l in moves.indices) {
+        if (kingMoveSquares[l].wouldBeHighlighted) {
+            moves[l] = false
+        }
+    }
+}
+
+fun checkMovesKnight(y: Square, enemy: Char, kingMoveSquares: List<Square>, i: Int) {
+    if (boardModel.currentBoard[y.row - 1][y.index].piece.pieceColor != 'x') {
+        if (boardModel.currentBoard[y.row - 2][y.index].piece.pieceColor != 'x') {
+            if (boardModel.currentBoard[y.row - 2][y.index - 1].piece.pieceColor == enemy ||
+                boardModel.currentBoard[y.row - 2][y.index - 1].piece.pieceColor == '0') {
+                boardModel.currentBoard[y.row - 2][y.index - 1].wouldBeHighlighted = true
+            }
+        }
+    }
+
+    if (boardModel.currentBoard[y.row - 1][y.index].piece.pieceColor != 'x') {
+        if (boardModel.currentBoard[y.row - 2][y.index].piece.pieceColor != 'x') {
+            if (boardModel.currentBoard[y.row - 2][y.index + 1].piece.pieceColor == enemy ||
+                boardModel.currentBoard[y.row - 2][y.index + 1].piece.pieceColor == '0') {
+                boardModel.currentBoard[y.row - 2][y.index + 1].wouldBeHighlighted = true
+            }
+        }
+    }
+
+    if (boardModel.currentBoard[y.row - 1][y.index].piece.pieceColor != 'x') {
+        if (boardModel.currentBoard[y.row - 1][y.index + 1].piece.pieceColor != 'x') {
+            if (boardModel.currentBoard[y.row - 1][y.index + 2].piece.pieceColor == enemy ||
+                boardModel.currentBoard[y.row - 1][y.index + 2].piece.pieceColor == '0') {
+                boardModel.currentBoard[y.row - 1][y.index + 2].wouldBeHighlighted = true
+            }
+        }
+    }
+
+    if (boardModel.currentBoard[y.row + 1][y.index].piece.pieceColor != 'x') {
+        if (boardModel.currentBoard[y.row + 1][y.index + 1].piece.pieceColor != 'x') {
+            if (boardModel.currentBoard[y.row + 1][y.index + 2].piece.pieceColor == enemy ||
+                boardModel.currentBoard[y.row + 1][y.index + 2].piece.pieceColor == '0') {
+                boardModel.currentBoard[y.row + 1][y.index + 2].wouldBeHighlighted = true
+            }
+        }
+    }
+
+    if (boardModel.currentBoard[y.row + 1][y.index].piece.pieceColor != 'x') {
+        if (boardModel.currentBoard[y.row + 2][y.index].piece.pieceColor != 'x') {
+            if (boardModel.currentBoard[y.row + 2][y.index + 1].piece.pieceColor == enemy ||
+                boardModel.currentBoard[y.row + 2][y.index + 1].piece.pieceColor == '0') {
+                boardModel.currentBoard[y.row + 2][y.index + 1].wouldBeHighlighted = true
+            }
+        }
+    }
+
+    if (boardModel.currentBoard[y.row + 1][y.index].piece.pieceColor != 'x') {
+        if (boardModel.currentBoard[y.row + 2][y.index].piece.pieceColor != 'x') {
+            if (boardModel.currentBoard[y.row + 2][y.index - 1].piece.pieceColor == enemy ||
+                boardModel.currentBoard[y.row + 2][y.index - 1].piece.pieceColor == '0') {
+                boardModel.currentBoard[y.row + 2][y.index - 1].wouldBeHighlighted = true
+            }
+        }
+    }
+
+    if (boardModel.currentBoard[y.row + 1][y.index].piece.pieceColor != 'x') {
+        if (boardModel.currentBoard[y.row + 1][y.index - 1].piece.pieceColor != 'x') {
+            if (boardModel.currentBoard[y.row + 1][y.index - 2].piece.pieceColor == enemy ||
+                boardModel.currentBoard[y.row + 1][y.index - 2].piece.pieceColor == '0') {
+                boardModel.currentBoard[y.row + 1][y.index - 2].wouldBeHighlighted = true
+            }
+        }
+    }
+
+
+    if (boardModel.currentBoard[y.row - 1][y.index].piece.pieceColor != 'x') {
+        if (boardModel.currentBoard[y.row - 1][y.index - 1].piece.pieceColor != 'x') {
+            if (boardModel.currentBoard[y.row - 1][y.index - 2].piece.pieceColor == enemy ||
+                boardModel.currentBoard[y.row - 1][y.index - 2].piece.pieceColor == '0') {
+                boardModel.currentBoard[y.row - 1][y.index - 2].wouldBeHighlighted = true
+            }
+        }
+    }
+
+    for (l in moves.indices) {
+        if (kingMoveSquares[l].wouldBeHighlighted) {
+            moves[l] = false
+        }
+    }
+
+
 }
 
 fun checkMovesBishop(y: Square, enemy: Char, kingMoveSquares: List<Square>, i: Int) {
@@ -716,8 +822,6 @@ fun nightLogic(y: Square, enemy: Char) {
         }
     }
 
-
-
 }
 
 fun pawnLogic(y: Square, enemy: Char, advance1: Int, advance2: Int) {
@@ -909,6 +1013,15 @@ fun castleLogic(y: Square, enemy: Char) {
 
     if (boardModel.currentBoard[y.row][y.index + d].piece.pieceColor == enemy) {
         boardModel.currentBoard[y.row][y.index + d].highlighted.value = true
+    }
+}
+
+
+fun unWouldBeHighlighted() {
+    for (s in boardModel.currentBoard) {
+        for (t in s) {
+            t.wouldBeHighlighted = false
+        }
     }
 }
 
