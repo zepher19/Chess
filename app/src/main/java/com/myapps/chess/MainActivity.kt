@@ -2,7 +2,6 @@ package com.myapps.chess
 
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
@@ -406,11 +405,11 @@ fun checkMoves(j: Square, kingMoveSquares: List<Square>) {
         }
     }
 
-    
-
     //castle logic
     if (j.piece.pieceType =='c') {
-        checkMovesCastle(j, enemy, kingMoveSquares)
+        for (i in kingMoveSquares.indices) {
+            checkMovesCastle(j, enemy, kingMoveSquares, i)
+        }
     }
     
     /*
@@ -438,8 +437,95 @@ fun checkMoves(j: Square, kingMoveSquares: List<Square>) {
      */
 }
 
-fun checkMovesCastle(j: Square, enemy: Char, kingMoveSquares: List<Square>) {
+fun checkMovesCastle(y: Square, enemy: Char, kingMoveSquares: List<Square>, i: Int) {
+    var a = 0
+    var b = 0
+    var c = 0
+    var d = 0
 
+    //white castle
+    if (y.piece.pieceColor == 'w') {
+        a = -1
+        b = 1
+        c = 1
+        d = -1
+    }
+    //black castle
+    else {
+        a = 1
+        b = -1
+        c = -1
+        d = 1
+    }
+
+    //moving forward
+    //keep highlighting till you hit enemy, edge of board, or ally
+    while (boardModel.currentBoard[y.row + a][y.index].piece.pieceColor == '0') {
+        boardModel.currentBoard[y.row + a][y.index].wouldBeHighlighted = true
+
+        if (a > 0) {
+            a++
+        }
+        else {
+            a--
+        }
+    }
+    if (boardModel.currentBoard[y.row + a][y.index].piece.pieceColor == enemy) {
+        boardModel.currentBoard[y.row + a][y.index].wouldBeHighlighted = true
+    }
+
+    //moving backwards
+    while (boardModel.currentBoard[y.row + b][y.index].piece.pieceColor == '0') {
+        boardModel.currentBoard[y.row + b][y.index].wouldBeHighlighted = true
+
+        if (b > 0) {
+            b++
+        }
+        else {
+            b--
+        }
+    }
+    if (boardModel.currentBoard[y.row + b][y.index].piece.pieceColor == enemy) {
+        boardModel.currentBoard[y.row + b][y.index].wouldBeHighlighted = true
+    }
+
+    //moving right
+    while (boardModel.currentBoard[y.row][y.index + c].piece.pieceColor == '0') {
+        boardModel.currentBoard[y.row][y.index + c].wouldBeHighlighted = true
+
+        if (c > 0) {
+            c++
+        }
+        else {
+            c--
+        }
+    }
+
+    if (boardModel.currentBoard[y.row][y.index + c].piece.pieceColor == enemy) {
+        boardModel.currentBoard[y.row][y.index + c].wouldBeHighlighted = true
+    }
+
+    //moving left
+    while (boardModel.currentBoard[y.row][y.index + d].piece.pieceColor == '0') {
+        boardModel.currentBoard[y.row][y.index + d].wouldBeHighlighted = true
+        if (d > 0) {
+            d++
+        }
+        else {
+            d--
+        }
+    }
+
+    if (boardModel.currentBoard[y.row][y.index + d].piece.pieceColor == enemy) {
+        boardModel.currentBoard[y.row][y.index + d].wouldBeHighlighted = true
+    }
+
+
+    for (l in moves.indices) {
+        if (kingMoveSquares[l].wouldBeHighlighted) {
+            moves[l] = false
+        }
+    }
 }
 
 fun checkMovesPawn(y: Square, enemy: Char, advance1: Int, advance2: Int, kingMoveSquares: List<Square>, int: Int ) {
@@ -671,10 +757,7 @@ fun castleLogic(y: Square, enemy: Char) {
 
     //moving forward
     //keep highlighting till you hit enemy, edge of board, or ally
-    while (boardModel.currentBoard[y.row + a][y.index].piece.pieceColor != enemy &&
-        boardModel.currentBoard[y.row + a][y.index].piece.pieceColor != 'x' &&
-        boardModel.currentBoard[y.row + a][y.index].piece.pieceColor != y.piece.pieceColor) {
-
+    while (boardModel.currentBoard[y.row + a][y.index].piece.pieceColor == '0') {
         boardModel.currentBoard[y.row + a][y.index].highlighted.value = true
 
         if (a > 0) {
@@ -689,10 +772,7 @@ fun castleLogic(y: Square, enemy: Char) {
     }
 
     //moving backwards
-    while (boardModel.currentBoard[y.row + b][y.index].piece.pieceColor != enemy &&
-        boardModel.currentBoard[y.row + b][y.index].piece.pieceColor != 'x' &&
-        boardModel.currentBoard[y.row + b][y.index].piece.pieceColor != y.piece.pieceColor) {
-
+    while (boardModel.currentBoard[y.row + b][y.index].piece.pieceColor == '0') {
         boardModel.currentBoard[y.row + b][y.index].highlighted.value = true
 
         if (b > 0) {
@@ -707,10 +787,7 @@ fun castleLogic(y: Square, enemy: Char) {
     }
 
     //moving right
-    while (boardModel.currentBoard[y.row][y.index + c].piece.pieceColor != enemy &&
-        boardModel.currentBoard[y.row][y.index + c].piece.pieceColor != 'x' &&
-        boardModel.currentBoard[y.row][y.index + c].piece.pieceColor != y.piece.pieceColor) {
-
+    while (boardModel.currentBoard[y.row][y.index + c].piece.pieceColor == '0') {
         boardModel.currentBoard[y.row][y.index + c].highlighted.value = true
 
         if (c > 0) {
@@ -725,12 +802,8 @@ fun castleLogic(y: Square, enemy: Char) {
         boardModel.currentBoard[y.row][y.index + c].highlighted.value = true
     }
 
-
     //moving left
-    while (boardModel.currentBoard[y.row][y.index + d].piece.pieceColor != enemy &&
-        boardModel.currentBoard[y.row][y.index + d].piece.pieceColor != 'x' &&
-        boardModel.currentBoard[y.row][y.index + d].piece.pieceColor != y.piece.pieceColor) {
-
+    while (boardModel.currentBoard[y.row][y.index + d].piece.pieceColor == '0') {
         boardModel.currentBoard[y.row][y.index + d].highlighted.value = true
         if (d > 0) {
             d++
