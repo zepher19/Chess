@@ -2,6 +2,10 @@ package com.myapps.chess
 
 class BoardModel {
 
+
+
+
+
     val row0 = listOf(Square(0, 0, 'x', Piece('x', 'x')), Square(0, 1, 'x', Piece('x', 'x')), Square(0, 2, 'x', Piece('x', 'x')), Square(0, 3, 'x', Piece('x', 'x')), Square(0, 4, 'x', Piece('x', 'x')),Square(0, 5, 'x', Piece('x', 'x')), Square(0, 6, 'x', Piece('x', 'x')), Square(0, 7, 'x', Piece('x', 'x')), Square(0, 8, 'x', Piece('x', 'x')), Square(0, 9, 'x', Piece('x', 'x')))
     val row1 = listOf(Square(1, 0, 'x', Piece('x', 'x')), Square(1, 1, 'w', Piece('c', 'b')), Square(1, 2, 'b', Piece('n', 'b')), Square(1, 3, 'w', Piece('b', 'b')), Square(1, 4, 'b', Piece('q', 'b')),Square(1, 5, 'w', Piece('0', '0')), Square(1, 6, 'b', Piece('b', 'b')), Square(1, 7, 'w', Piece('n', 'b')), Square(1, 8, 'b', Piece('c', 'b')), Square(1, 9, 'x', Piece('x', 'x')))
     val row2 = listOf(Square(2, 0, 'x', Piece('x', 'x')), Square(2, 1, 'b', Piece('p', 'b')), Square(2, 2, 'w', Piece('p', 'b')), Square(2, 3, 'b', Piece('p', 'b')), Square(2, 4, 'w', Piece('p', 'b')),Square(2, 5, 'b', Piece('p', 'b')), Square(2, 6, 'w', Piece('p', 'b')), Square(2, 7, 'b', Piece('p', 'b')), Square(2, 8, 'w', Piece('p', 'b')), Square(2, 9, 'x', Piece('x', 'x')))

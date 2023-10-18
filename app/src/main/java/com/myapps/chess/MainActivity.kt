@@ -1,6 +1,8 @@
 package com.myapps.chess
 
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
@@ -29,6 +31,19 @@ var boardModel = BoardModel()
 val DEFAULT_SQUARE = Square(10, 10, '0', Piece('0', '0'))
 
 var previousHighlightedSquare: Square = DEFAULT_SQUARE
+
+
+var move0 = true
+var move1 = true
+var move2 = true
+var move3 = true
+var move4 = true
+var move5 = true
+var move6 = true
+var move7 = true
+
+
+var moves = arrayOf(move0, move1, move2, move3, move4, move5, move6, move7)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -309,14 +324,6 @@ fun highlightMoves(y: Square) {
 }
 
 fun kingLogic(y: Square, enemy: Char) {
-    var move0 = true
-    var move1 = true
-    var move2 = true
-    var move3 = true
-    var move4 = true
-    var move5 = true
-    var move6 = true
-    var move7 = true
 
     val square0 = boardModel.currentBoard[y.row - 1][y.index - 1]
     val square1 = boardModel.currentBoard[y.row - 1][y.index]
@@ -331,51 +338,47 @@ fun kingLogic(y: Square, enemy: Char) {
 
 
     //first detect which moves are open based purely on open spots
-    if (square0.piece.pieceColor == y.piece.pieceColor
-        || square0.piece.pieceColor == 'x') {
-        move0 = false
-    }
-    if (square1.piece.pieceColor == y.piece.pieceColor
-        || square1.piece.pieceColor == 'x') {
-        move1 = false
-    }
-    if (square2.piece.pieceColor == y.piece.pieceColor
-        || square2.piece.pieceColor == 'x') {
-        move2 = false
-    }
-    if (square3.piece.pieceColor == y.piece.pieceColor
-        || square3.piece.pieceColor == 'x') {
-        move3 = false
-    }
-    if (square4.piece.pieceColor == y.piece.pieceColor
-        || square4.piece.pieceColor == 'x') {
-        move4 = false
-    }
-    if (square5.piece.pieceColor == y.piece.pieceColor
-        || square5.piece.pieceColor == 'x') {
-        move5 = false
-    }
-    if (square6.piece.pieceColor == y.piece.pieceColor
-        || square6.piece.pieceColor == 'x') {
-        move6 = false
-    }
-    if (square7.piece.pieceColor == y.piece.pieceColor
-        || square7.piece.pieceColor == 'x') {
-        move7 = false
+    for (i in 0 until moves.size) {
+        if (kingMoveSquares[i].piece.pieceColor == y.piece.pieceColor
+            || kingMoveSquares[i].piece.pieceColor == 'x') {
+            moves[i] = false
+        }
     }
 
-    //iterate through all enemy pieces and see which spots they could attack
+    //then iterate through all enemy pieces and see which spots they could attack
     for (i in boardModel.currentBoard) {
         for (j in i) {
             if (j.piece.pieceColor == enemy) {
-                //if j is a pawn check pawn moves to see if they could attack after the king moves
-                //do the same for every type of piece
                 checkMoves(j, kingMoveSquares)
             }
         }
     }
+    var gameOver = true
 
+    for (p in moves.indices) {
+        if (moves[p]) {
+            gameOver = false
+        }
+    }
 
+    if (gameOver) {
+        Log.d("Game Over", "Game Over")
+    }
+
+    highlightKingMoves(kingMoveSquares)
+    //print to console
+    var movesList = moves.toList()
+    Log.d("Moves", movesList.toString())
+}
+
+fun highlightKingMoves(kingMoveSquares: List<Square>) {
+    for (i in kingMoveSquares.indices) {
+        kingMoveSquares[i].highlighted.value = moves[i]
+    }
+    //reset moves
+    for (j in moves.indices) {
+        moves[j] = true
+    }
 }
 
 fun checkMoves(j: Square, kingMoveSquares: List<Square>) {
@@ -398,13 +401,19 @@ fun checkMoves(j: Square, kingMoveSquares: List<Square>) {
 
     //pawn logic
     if (j.piece.pieceType =='p') {
-        checkMovesPawn(j, enemy, advance1, advance2, kingMoveSquares)
+        for (i in kingMoveSquares.indices) {
+            checkMovesPawn(j, enemy, advance1, advance2, kingMoveSquares, i)
+        }
     }
+
+    
 
     //castle logic
     if (j.piece.pieceType =='c') {
-        castleLogic(j, enemy)
+        checkMovesCastle(j, enemy, kingMoveSquares)
     }
+    
+    /*
 
     //bishop logic
     if (j.piece.pieceType == 'b') {
@@ -425,35 +434,22 @@ fun checkMoves(j: Square, kingMoveSquares: List<Square>) {
     if (j.piece.pieceType == 'k') {
         kingLogic(j,enemy)
     }
+
+     */
 }
 
-fun checkMovesPawn(
-    y: Square,
-    enemy: Char,
-    advance1: Int,
-    advance2: Int,
-    kingMoveSquares: List<Square>,
-    ) {
+fun checkMovesCastle(j: Square, enemy: Char, kingMoveSquares: List<Square>) {
 
+}
 
-    for (i in kingMoveSquares) {
+fun checkMovesPawn(y: Square, enemy: Char, advance1: Int, advance2: Int, kingMoveSquares: List<Square>, int: Int ) {
 
+    if (y.row + advance1 == kingMoveSquares[int].row && y.index - 1 == kingMoveSquares[int].index) {
+        moves[int] = false
     }
-
-
-    //if there is an enemy piece adjacent left
-    if (boardModel.currentBoard[y.row + advance1][y.index - 1] == kingMoveSquares[0]) {
-        boardModel.currentBoard[y.row + advance1][y.index - 1].highlighted.value = true
+    if (y.row + advance1 == kingMoveSquares[int].row && y.index + 1 == kingMoveSquares[int].index) {
+        moves[int] = false
     }
-    //if there is an enemy piece adjacent right
-    if (boardModel.currentBoard[y.row + advance1][y.index + 1].piece.pieceColor == enemy) {
-        boardModel.currentBoard[y.row + advance1][y.index + 1].highlighted.value = true
-    }
-    //highlight one space straight forward
-    if (boardModel.currentBoard[y.row + advance1][y.index].piece.pieceColor == '0')
-        boardModel.currentBoard[y.row + advance1][y.index].highlighted.value = true
-
-
 }
 
 fun nightLogic(y: Square, enemy: Char) {
