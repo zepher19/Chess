@@ -411,14 +411,15 @@ fun checkMoves(j: Square, kingMoveSquares: List<Square>) {
             checkMovesCastle(j, enemy, kingMoveSquares, i)
         }
     }
-    
-    /*
 
     //bishop logic
     if (j.piece.pieceType == 'b') {
-        bishopLogic(j, enemy)
+        for (i in kingMoveSquares.indices) {
+            checkMovesBishop(j, enemy, kingMoveSquares, i)
+        }
     }
 
+    /*
     //knight logic
     if (j.piece.pieceType == 'n') {
         nightLogic(j, enemy)
@@ -435,6 +436,103 @@ fun checkMoves(j: Square, kingMoveSquares: List<Square>) {
     }
 
      */
+}
+
+fun checkMovesBishop(y: Square, enemy: Char, kingMoveSquares: List<Square>, i: Int) {
+    var a = 0
+    var b = 0
+    var c = 0
+    var d = 0
+
+    //white castle
+    if (y.piece.pieceColor == 'w') {
+        a = -1
+        b = 1
+        c = 1
+        d = -1
+    }
+    //black castle
+    else {
+        a = 1
+        b = -1
+        c = -1
+        d = 1
+    }
+
+    //
+    //keep highlighting till you hit enemy, edge of board, or ally
+    while (boardModel.currentBoard[y.row + a][y.index + a].piece.pieceColor == '0') {
+
+        boardModel.currentBoard[y.row + a][y.index + a].wouldBeHighlighted= true
+
+        if (a > 0) {
+            a++
+        }
+        else {
+            a--
+        }
+    }
+    if (boardModel.currentBoard[y.row + a][y.index + a].piece.pieceColor == enemy) {
+        boardModel.currentBoard[y.row + a][y.index + a].wouldBeHighlighted = true
+    }
+
+    //moving backwards
+    while (boardModel.currentBoard[y.row + b][y.index + b].piece.pieceColor == '0') {
+
+        boardModel.currentBoard[y.row + b][y.index + b].wouldBeHighlighted = true
+
+        if (b > 0) {
+            b++
+        }
+        else {
+            b--
+        }
+    }
+    if (boardModel.currentBoard[y.row + b][y.index + b].piece.pieceColor == enemy) {
+        boardModel.currentBoard[y.row + b][y.index + b].wouldBeHighlighted = true
+    }
+
+
+    //moving right
+    while (boardModel.currentBoard[y.row + c][y.index - c].piece.pieceColor =='0') {
+
+        boardModel.currentBoard[y.row + c][y.index - c].wouldBeHighlighted = true
+
+        if (c > 0) {
+            c++
+        }
+        else {
+            c--
+        }
+    }
+
+    if (boardModel.currentBoard[y.row + c][y.index - c].piece.pieceColor == enemy) {
+        boardModel.currentBoard[y.row + c][y.index - c].wouldBeHighlighted = true
+    }
+
+
+    //moving left
+    while (boardModel.currentBoard[y.row + d][y.index - d].piece.pieceColor == '0') {
+
+        boardModel.currentBoard[y.row + d][y.index - d].wouldBeHighlighted = true
+        if (d > 0) {
+            d++
+        }
+        else {
+            d--
+        }
+    }
+
+    if (boardModel.currentBoard[y.row + d][y.index - d].piece.pieceColor == enemy) {
+        boardModel.currentBoard[y.row + d][y.index - d].wouldBeHighlighted = true
+    }
+
+    for (l in moves.indices) {
+        if (kingMoveSquares[l].wouldBeHighlighted) {
+            moves[l] = false
+        }
+    }
+
 }
 
 fun checkMovesCastle(y: Square, enemy: Char, kingMoveSquares: List<Square>, i: Int) {
@@ -657,9 +755,7 @@ fun bishopLogic(y: Square, enemy: Char) {
 
     //
     //keep highlighting till you hit enemy, edge of board, or ally
-    while (boardModel.currentBoard[y.row + a][y.index + a].piece.pieceColor != enemy &&
-        boardModel.currentBoard[y.row + a][y.index + a].piece.pieceColor != 'x' &&
-        boardModel.currentBoard[y.row + a][y.index + a].piece.pieceColor != y.piece.pieceColor) {
+    while (boardModel.currentBoard[y.row + a][y.index + a].piece.pieceColor == '0') {
 
         boardModel.currentBoard[y.row + a][y.index + a].highlighted.value = true
 
@@ -675,9 +771,7 @@ fun bishopLogic(y: Square, enemy: Char) {
     }
 
     //moving backwards
-    while (boardModel.currentBoard[y.row + b][y.index + b].piece.pieceColor != enemy &&
-        boardModel.currentBoard[y.row + b][y.index + b].piece.pieceColor != 'x' &&
-        boardModel.currentBoard[y.row + b][y.index + b].piece.pieceColor != y.piece.pieceColor) {
+    while (boardModel.currentBoard[y.row + b][y.index + b].piece.pieceColor == '0') {
 
         boardModel.currentBoard[y.row + b][y.index + b].highlighted.value = true
 
@@ -694,9 +788,7 @@ fun bishopLogic(y: Square, enemy: Char) {
 
 
     //moving right
-    while (boardModel.currentBoard[y.row + c][y.index - c].piece.pieceColor != enemy &&
-        boardModel.currentBoard[y.row + c][y.index - c].piece.pieceColor != 'x' &&
-        boardModel.currentBoard[y.row + c][y.index - c].piece.pieceColor != y.piece.pieceColor) {
+    while (boardModel.currentBoard[y.row + c][y.index - c].piece.pieceColor =='0') {
 
         boardModel.currentBoard[y.row + c][y.index - c].highlighted.value = true
 
@@ -714,9 +806,7 @@ fun bishopLogic(y: Square, enemy: Char) {
 
 
     //moving left
-    while (boardModel.currentBoard[y.row + d][y.index - d].piece.pieceColor != enemy &&
-        boardModel.currentBoard[y.row + d][y.index - d].piece.pieceColor != 'x' &&
-        boardModel.currentBoard[y.row + d][y.index - d].piece.pieceColor != y.piece.pieceColor) {
+    while (boardModel.currentBoard[y.row + d][y.index - d].piece.pieceColor == '0') {
 
         boardModel.currentBoard[y.row + d][y.index - d].highlighted.value = true
         if (d > 0) {
@@ -730,8 +820,6 @@ fun bishopLogic(y: Square, enemy: Char) {
     if (boardModel.currentBoard[y.row + d][y.index - d].piece.pieceColor == enemy) {
         boardModel.currentBoard[y.row + d][y.index - d].highlighted.value = true
     }
-
-
 }
 
 fun castleLogic(y: Square, enemy: Char) {
