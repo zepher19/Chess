@@ -4,6 +4,8 @@ class BoardModel {
 
 
 
+    var playerTurn = 'w'
+
 
 
     val row0 = listOf(Square(0, 0, 'x', Piece('x', 'x')), Square(0, 1, 'x', Piece('x', 'x')), Square(0, 2, 'x', Piece('x', 'x')), Square(0, 3, 'x', Piece('x', 'x')), Square(0, 4, 'x', Piece('x', 'x')),Square(0, 5, 'x', Piece('x', 'x')), Square(0, 6, 'x', Piece('x', 'x')), Square(0, 7, 'x', Piece('x', 'x')), Square(0, 8, 'x', Piece('x', 'x')), Square(0, 9, 'x', Piece('x', 'x')))

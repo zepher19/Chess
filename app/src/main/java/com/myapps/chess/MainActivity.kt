@@ -14,15 +14,19 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 
 var boardModel = BoardModel()
@@ -44,6 +48,14 @@ var move7 = true
 
 var moves = arrayOf(move0, move1, move2, move3, move4, move5, move6, move7)
 
+
+var whiteCheck = false
+var blackCheck = false
+
+var gameOver = false
+
+
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,42 +65,34 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-fun chooseModifier(y: Square): Modifier {
-
-
-
-    val borderWidth = 4.dp
-
-    val modifierHighlight = Modifier
-        .size(40.dp)
-        .clickable {
-            highlightSquares(y)
-        }
-        .border(BorderStroke(borderWidth, Color.Yellow), RectangleShape)
-        .padding(borderWidth)
-        .clip(RectangleShape)
-
-    val modifierNormal = Modifier
-        .size(40.dp)
-        .clickable {
-            highlightSquares(y)
-        }
-
-    if (y.highlighted.value)
-        return modifierHighlight
-
-    else
-        return modifierNormal
-}
 
 @Composable
 fun Board() {
+    //determine if either player is in checkmate
+    if (whiteCheck && gameOver) {
+        gameIsOver("White was defeated!\nBlack Wins!")
+    }
 
-    //column inputs places the board in the center of the screen
+    if (blackCheck && gameOver) {
+        gameIsOver("Black was Defeated!\nWhite Wins!")
+    }
+
+    //change outline color based on player turn
+    var outlineModifier = determineOutlineModifier()
+
+    //draw board
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = outlineModifier,
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally) {
+
+        //display if player is in check
+        if (blackCheck) {
+            Text(text = "Black Check", color = Color.Black, fontSize = 20.sp)
+        }
+        else {
+            Text(text = "White Check", Modifier.alpha(0F), fontSize = 20.sp)
+        }
 
         var y = DEFAULT_SQUARE
         var modifierToUse: Modifier
@@ -109,8 +113,68 @@ fun Board() {
                 }
             }
         }
+
+        //display if player is in check
+        if (whiteCheck) {
+            Text(text = "White Check", color = Color.White, fontSize = 20.sp)
+        }
+        else {
+            Text(text = "White Check", Modifier.alpha(0F), fontSize = 20.sp)
+        }
     }
 }
+
+
+fun chooseModifier(y: Square): Modifier {
+
+    val borderWidth = 4.dp
+
+    val modifierHighlight = Modifier
+        .size(40.dp)
+        .clickable {
+            highlightSquares(y)
+        }
+        .border(BorderStroke(borderWidth, Color.Red), RectangleShape)
+        .padding(borderWidth)
+        .clip(RectangleShape)
+
+    val modifierNormal = Modifier
+        .size(40.dp)
+        .clickable {
+            highlightSquares(y)
+        }
+
+    if (y.highlighted.value)
+        return modifierHighlight
+
+    else
+        return modifierNormal
+}
+
+fun determineOutlineModifier(): Modifier {
+    var outlineModifierWhite = Modifier.fillMaxSize()
+        .border(BorderStroke(20.dp, Color.White), RectangleShape)
+        .padding(20.dp)
+        .clip(RectangleShape)
+
+    var outlineModifierBlack = Modifier.fillMaxSize()
+        .border(BorderStroke(20.dp, Color.Black), RectangleShape)
+        .padding(20.dp)
+        .clip(RectangleShape)
+
+    if (boardModel.playerTurn == 'b') {
+        return outlineModifierBlack
+    }
+    else {
+        return outlineModifierWhite
+    }
+}
+
+@Composable
+fun gameIsOver(text: String) {
+    AlertDialog(onDismissRequest = { /*TODO*/ }, confirmButton = { /*TODO*/ }, title = {
+        Text(text = text)
+    })}
 
 fun determineSquareImage(y: Square) {
 
@@ -227,6 +291,11 @@ fun determineSquareImage(y: Square) {
 
 fun highlightSquares(y: Square) {
 
+    if (y.piece.pieceColor != boardModel.playerTurn && previousHighlightedSquare == DEFAULT_SQUARE) {
+        return
+    }
+
+
     //prevents empty spaces from being highlighted
     if (y.piece.pieceColor == '0' && previousHighlightedSquare.piece.pieceColor == '0')
         return
@@ -238,8 +307,10 @@ fun highlightSquares(y: Square) {
     }
 
     //if previous highlighted square has the default value then grab the new value
-    if (previousHighlightedSquare == DEFAULT_SQUARE)
+    if (previousHighlightedSquare == DEFAULT_SQUARE) {
         previousHighlightedSquare = y
+    }
+
 
 
     //if already highlighted, move instead
@@ -248,6 +319,10 @@ fun highlightSquares(y: Square) {
         return
     }
 
+
+
+
+
     boardModel.unhighlight()
     y.highlighted.value = true
 
@@ -255,11 +330,19 @@ fun highlightSquares(y: Square) {
 }
 
 fun movePiece(y: Square) {
+
     //draw piece in new spot
     boardModel.currentBoard[y.row][y.index].piece.pieceType = previousHighlightedSquare.piece.pieceType
     boardModel.currentBoard[y.row][y.index].piece.pieceColor = previousHighlightedSquare.piece.pieceColor
     boardModel.currentBoard[y.row][y.index].piece.firstMove = false
 
+    //promote if pawn at endzone of other side
+    if (y.row == 1 && y.piece.pieceColor == 'w' && y.piece.pieceType == 'p') {
+        promotePawn(y)
+    }
+    if (y.row == 8 && y.piece.pieceColor == 'b'&& y.piece.pieceType == 'p') {
+        promotePawn(y)
+    }
 
     //delete piece from old spot
     boardModel.currentBoard[previousHighlightedSquare.row][previousHighlightedSquare.index].piece.pieceType = '0'
@@ -270,6 +353,335 @@ fun movePiece(y: Square) {
 
     //reset previous highlighted square
     previousHighlightedSquare = DEFAULT_SQUARE
+
+
+    //determine if player is in check
+    var enemy = 'z'
+    var advance1 = 0
+
+    //white piece
+    if (y.piece.pieceColor == 'w') {
+        advance1 = -1
+        enemy = 'b'
+    }
+    //black piece
+    else {
+        advance1 = 1
+        enemy = 'w'
+    }
+
+    //if king moves, they must have moved out of check by virtue of moving
+    if (y.piece.pieceType == 'k') {
+        whiteCheck = false
+        blackCheck = false
+        return
+    }
+
+
+    if (y.piece.pieceColor == 'w') {
+        blackCheck = checkForCheck(y, advance1, enemy)
+    }
+    if (y.piece.pieceColor == 'b') {
+        whiteCheck = checkForCheck(y, advance1, enemy)
+    }
+
+    switchPlayers()
+    Log.d("sdf", boardModel.playerTurn.toString())
+
+}
+
+fun switchPlayers() {
+    if (boardModel.playerTurn == 'w') {
+        boardModel.playerTurn = 'b'
+        return
+    }
+    if (boardModel.playerTurn == 'b') {
+        boardModel.playerTurn = 'w'
+        return
+    }
+}
+
+fun checkForCheck(y: Square, advance1: Int, enemy: Char): Boolean {
+
+    var enemyKing = findEnemyKing(y, enemy)
+
+    //if pawn is moved
+    if (y.piece.pieceType == 'p') {
+        return checkForPawnCheck(y, advance1, enemy, enemyKing)
+    }
+    //if castle is moved
+    if (y.piece.pieceType == 'c') {
+        return checkForCastleCheck(y, advance1, enemy, enemyKing)
+    }
+
+    //if bishop is moved
+    if (y.piece.pieceType == 'b') {
+        return checkForBishopCheck(y, advance1, enemy, enemyKing)
+    }
+
+    //if queen is moved
+    if (y.piece.pieceType == 'q') {
+        return checkForCastleCheck(y, advance1, enemy, enemyKing) || checkForBishopCheck(y, advance1, enemy, enemyKing)
+    }
+
+    //if night is moved
+    if (y.piece.pieceType == 'n') {
+        return checkForNightCheck(y, advance1, enemy, enemyKing)
+    }
+    return false
+}
+
+fun checkForNightCheck(y: Square, advance1: Int, enemy: Char, enemyKing: Square): Boolean {
+    if (boardModel.currentBoard[y.row - 1][y.index].piece.pieceColor != 'x') {
+        if (boardModel.currentBoard[y.row - 2][y.index].piece.pieceColor != 'x') {
+            if (boardModel.currentBoard[y.row - 2][y.index - 1] == enemyKing) {
+                return true
+            }
+        }
+    }
+
+    if (boardModel.currentBoard[y.row - 1][y.index].piece.pieceColor != 'x') {
+        if (boardModel.currentBoard[y.row - 2][y.index].piece.pieceColor != 'x') {
+            if (boardModel.currentBoard[y.row - 2][y.index + 1] == enemyKing) {
+                return true
+            }
+        }
+    }
+
+    if (boardModel.currentBoard[y.row - 1][y.index].piece.pieceColor != 'x') {
+        if (boardModel.currentBoard[y.row - 1][y.index + 1].piece.pieceColor != 'x') {
+            if (boardModel.currentBoard[y.row - 1][y.index + 2] == enemyKing) {
+                return true
+            }
+        }
+    }
+
+    if (boardModel.currentBoard[y.row + 1][y.index].piece.pieceColor != 'x') {
+        if (boardModel.currentBoard[y.row + 1][y.index + 1].piece.pieceColor != 'x') {
+            if (boardModel.currentBoard[y.row + 1][y.index + 2] == enemyKing) {
+                return true
+            }
+        }
+    }
+
+    if (boardModel.currentBoard[y.row + 1][y.index].piece.pieceColor != 'x') {
+        if (boardModel.currentBoard[y.row + 2][y.index].piece.pieceColor != 'x') {
+            if (boardModel.currentBoard[y.row + 2][y.index + 1] == enemyKing) {
+                return true
+            }
+        }
+    }
+
+    if (boardModel.currentBoard[y.row + 1][y.index].piece.pieceColor != 'x') {
+        if (boardModel.currentBoard[y.row + 2][y.index].piece.pieceColor != 'x') {
+            if (boardModel.currentBoard[y.row + 2][y.index - 1] == enemyKing) {
+                return true
+            }
+        }
+    }
+
+    if (boardModel.currentBoard[y.row + 1][y.index].piece.pieceColor != 'x') {
+        if (boardModel.currentBoard[y.row + 1][y.index - 1].piece.pieceColor != 'x') {
+            if (boardModel.currentBoard[y.row + 1][y.index - 2] == enemyKing) {
+                return true
+            }
+        }
+    }
+
+
+    if (boardModel.currentBoard[y.row - 1][y.index].piece.pieceColor != 'x') {
+        if (boardModel.currentBoard[y.row - 1][y.index - 1].piece.pieceColor != 'x') {
+            if (boardModel.currentBoard[y.row - 1][y.index - 2] == enemyKing) {
+                return true
+            }
+        }
+    }
+
+    return false
+}
+
+fun checkForBishopCheck(y: Square, advance1: Int, enemy: Char, enemyKing: Square): Boolean {
+    var a = 0
+    var b = 0
+    var c = 0
+    var d = 0
+
+    //white castle
+    if (y.piece.pieceColor == 'w') {
+        a = -1
+        b = 1
+        c = 1
+        d = -1
+    }
+    //black castle
+    else {
+        a = 1
+        b = -1
+        c = -1
+        d = 1
+    }
+
+    //
+    //keep highlighting till you hit enemy, edge of board, or ally
+    while (boardModel.currentBoard[y.row + a][y.index + a].piece.pieceColor == '0') {
+        if (a > 0) {
+            a++
+        }
+        else {
+            a--
+        }
+    }
+    if (boardModel.currentBoard[y.row + a][y.index + a] == enemyKing) {
+        return true
+    }
+
+    //moving backwards
+    while (boardModel.currentBoard[y.row + b][y.index + b].piece.pieceColor == '0') {
+        if (b > 0) {
+            b++
+        }
+        else {
+            b--
+        }
+    }
+    if (boardModel.currentBoard[y.row + b][y.index + b] == enemyKing) {
+        return true
+    }
+
+
+    //moving right
+    while (boardModel.currentBoard[y.row + c][y.index - c].piece.pieceColor =='0') {
+        if (c > 0) {
+            c++
+        }
+        else {
+            c--
+        }
+    }
+
+    if (boardModel.currentBoard[y.row + c][y.index - c] == enemyKing) {
+        return true
+    }
+
+
+    //moving left
+    while (boardModel.currentBoard[y.row + d][y.index - d].piece.pieceColor == '0') {
+        if (d > 0) {
+            d++
+        }
+        else {
+            d--
+        }
+    }
+    if (boardModel.currentBoard[y.row + d][y.index - d] == enemyKing) {
+        return true
+    }
+
+    return false
+}
+
+fun checkForCastleCheck(y: Square, advance1: Int, enemy: Char, enemyKing: Square): Boolean {
+    var a = 0
+    var b = 0
+    var c = 0
+    var d = 0
+
+    //white castle
+    if (y.piece.pieceColor == 'w') {
+        a = -1
+        b = 1
+        c = 1
+        d = -1
+    }
+    //black castle
+    else {
+        a = 1
+        b = -1
+        c = -1
+        d = 1
+    }
+
+    //moving forward
+    //keep highlighting till you hit enemy, edge of board, or ally
+    while (boardModel.currentBoard[y.row + a][y.index].piece.pieceColor == '0') {
+        if (a > 0) {
+            a++
+        }
+        else {
+            a--
+        }
+    }
+    if (boardModel.currentBoard[y.row + a][y.index] == enemyKing) {
+        return true
+    }
+
+    //moving backwards
+    while (boardModel.currentBoard[y.row + b][y.index].piece.pieceColor == '0') {
+        if (b > 0) {
+            b++
+        }
+        else {
+            b--
+        }
+    }
+    if (boardModel.currentBoard[y.row + b][y.index] == enemyKing) {
+        return true
+    }
+
+    //moving right
+    while (boardModel.currentBoard[y.row][y.index + c].piece.pieceColor == '0') {
+        if (c > 0) {
+            c++
+        }
+        else {
+            c--
+        }
+    }
+
+    if (boardModel.currentBoard[y.row][y.index + c]== enemyKing) {
+        return true
+    }
+
+    //moving left
+    while (boardModel.currentBoard[y.row][y.index + d].piece.pieceColor == '0') {
+        if (d > 0) {
+            d++
+        }
+        else {
+            d--
+        }
+    }
+
+    if (boardModel.currentBoard[y.row][y.index + d] == enemyKing) {
+        return true
+    }
+    return false
+}
+
+fun checkForPawnCheck(y: Square, advance1: Int, enemy: Char, enemyKing: Square): Boolean {
+    if (y.row + advance1 == enemyKing.row && y.index - 1 == enemyKing.index) {
+        return true
+    }
+    if (y.row + advance1 == enemyKing.row && y.index + 1 == enemyKing.index) {
+        return true
+    }
+    return false
+}
+
+fun findEnemyKing(y: Square, enemy: Char): Square {
+
+    for (i in boardModel.currentBoard) {
+        for (j in i) {
+            if (j.piece.pieceType == 'k' && j.piece.pieceColor == enemy) {
+                return j
+            }
+        }
+    }
+    return DEFAULT_SQUARE
+}
+
+fun promotePawn(y: Square) {
+    y.piece.pieceType = 'q'
 }
 
 
@@ -352,24 +764,19 @@ fun kingLogic(y: Square, enemy: Char) {
             }
         }
     }
-    var gameOver = true
-
-    for (p in moves.indices) {
-        if (moves[p]) {
-            gameOver = false
-        }
-    }
-
-    if (gameOver) {
-        Log.d("Game Over", "Game Over")
-    }
-
     highlightKingMoves(kingMoveSquares)
 }
 
 fun highlightKingMoves(kingMoveSquares: List<Square>) {
+    var counter = 0
     for (i in kingMoveSquares.indices) {
         kingMoveSquares[i].highlighted.value = moves[i]
+        if (moves[i]) {
+            counter++
+        }
+    }
+    if (counter == 0) {
+        gameOver = true
     }
     //reset moves
     for (j in moves.indices) {
@@ -584,7 +991,7 @@ fun checkMovesBishop(y: Square, enemy: Char, kingMoveSquares: List<Square>, i: I
             a--
         }
     }
-    if (boardModel.currentBoard[y.row + a][y.index + a].piece.pieceColor == enemy) {
+    if (boardModel.currentBoard[y.row + a][y.index + a].piece.pieceColor == enemy || boardModel.currentBoard[y.row + a][y.index + a].piece.pieceColor == y.piece.pieceColor) {
         boardModel.currentBoard[y.row + a][y.index + a].wouldBeHighlighted = true
     }
 
@@ -600,7 +1007,7 @@ fun checkMovesBishop(y: Square, enemy: Char, kingMoveSquares: List<Square>, i: I
             b--
         }
     }
-    if (boardModel.currentBoard[y.row + b][y.index + b].piece.pieceColor == enemy) {
+    if (boardModel.currentBoard[y.row + b][y.index + b].piece.pieceColor == enemy || boardModel.currentBoard[y.row + b][y.index + b].piece.pieceColor == y.piece.pieceColor) {
         boardModel.currentBoard[y.row + b][y.index + b].wouldBeHighlighted = true
     }
 
@@ -618,7 +1025,7 @@ fun checkMovesBishop(y: Square, enemy: Char, kingMoveSquares: List<Square>, i: I
         }
     }
 
-    if (boardModel.currentBoard[y.row + c][y.index - c].piece.pieceColor == enemy) {
+    if (boardModel.currentBoard[y.row + c][y.index - c].piece.pieceColor == enemy || boardModel.currentBoard[y.row + c][y.index - c].piece.pieceColor == y.piece.pieceColor) {
         boardModel.currentBoard[y.row + c][y.index - c].wouldBeHighlighted = true
     }
 
@@ -635,7 +1042,7 @@ fun checkMovesBishop(y: Square, enemy: Char, kingMoveSquares: List<Square>, i: I
         }
     }
 
-    if (boardModel.currentBoard[y.row + d][y.index - d].piece.pieceColor == enemy) {
+    if (boardModel.currentBoard[y.row + d][y.index - d].piece.pieceColor == enemy || boardModel.currentBoard[y.row + d][y.index - d].piece.pieceColor == y.piece.pieceColor) {
         boardModel.currentBoard[y.row + d][y.index - d].wouldBeHighlighted = true
     }
 
@@ -680,7 +1087,7 @@ fun checkMovesCastle(y: Square, enemy: Char, kingMoveSquares: List<Square>, i: I
             a--
         }
     }
-    if (boardModel.currentBoard[y.row + a][y.index].piece.pieceColor == enemy) {
+    if (boardModel.currentBoard[y.row + a][y.index].piece.pieceColor == enemy || boardModel.currentBoard[y.row + a][y.index].piece.pieceColor == y.piece.pieceColor) {
         boardModel.currentBoard[y.row + a][y.index].wouldBeHighlighted = true
     }
 
@@ -695,7 +1102,7 @@ fun checkMovesCastle(y: Square, enemy: Char, kingMoveSquares: List<Square>, i: I
             b--
         }
     }
-    if (boardModel.currentBoard[y.row + b][y.index].piece.pieceColor == enemy) {
+    if (boardModel.currentBoard[y.row + b][y.index].piece.pieceColor == enemy || boardModel.currentBoard[y.row + b][y.index].piece.pieceColor == y.piece.pieceColor) {
         boardModel.currentBoard[y.row + b][y.index].wouldBeHighlighted = true
     }
 
@@ -711,7 +1118,7 @@ fun checkMovesCastle(y: Square, enemy: Char, kingMoveSquares: List<Square>, i: I
         }
     }
 
-    if (boardModel.currentBoard[y.row][y.index + c].piece.pieceColor == enemy) {
+    if (boardModel.currentBoard[y.row][y.index + c].piece.pieceColor == enemy || boardModel.currentBoard[y.row][y.index + c].piece.pieceColor == y.piece.pieceColor ) {
         boardModel.currentBoard[y.row][y.index + c].wouldBeHighlighted = true
     }
 
@@ -726,7 +1133,7 @@ fun checkMovesCastle(y: Square, enemy: Char, kingMoveSquares: List<Square>, i: I
         }
     }
 
-    if (boardModel.currentBoard[y.row][y.index + d].piece.pieceColor == enemy) {
+    if (boardModel.currentBoard[y.row][y.index + d].piece.pieceColor == enemy || boardModel.currentBoard[y.row][y.index + d].piece.pieceColor == y.piece.pieceColor ) {
         boardModel.currentBoard[y.row][y.index + d].wouldBeHighlighted = true
     }
 
@@ -741,10 +1148,16 @@ fun checkMovesCastle(y: Square, enemy: Char, kingMoveSquares: List<Square>, i: I
 fun checkMovesPawn(y: Square, enemy: Char, advance1: Int, advance2: Int, kingMoveSquares: List<Square>, int: Int ) {
 
     if (y.row + advance1 == kingMoveSquares[int].row && y.index - 1 == kingMoveSquares[int].index) {
-        moves[int] = false
+        boardModel.currentBoard[y.row + advance1][y.index - 1].wouldBeHighlighted = true
     }
     if (y.row + advance1 == kingMoveSquares[int].row && y.index + 1 == kingMoveSquares[int].index) {
-        moves[int] = false
+        boardModel.currentBoard[y.row + advance1][y.index + 1].wouldBeHighlighted = true
+    }
+
+    for (l in moves.indices) {
+        if (kingMoveSquares[l].wouldBeHighlighted) {
+            moves[l] = false
+        }
     }
 }
 
