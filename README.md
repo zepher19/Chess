@@ -2,6 +2,9 @@ Hello there!
 
 I'm currently looking for a coding job, so I decided to create a Chess board game app to demonstrate my ability to work with Kotlin and the Jetpack Compose framework. 
 
+![chess image](https://github.com/zepher19/Chess/assets/108103331/8b60efb4-549b-41b8-8e46-9fb368cd2cf4)
+
+
 Here is the video link if you'd like to see the game in action: https://youtu.be/cN-3VX_Sk3E
 
 Note: The piece images were acquired through WikiCommons and are the product of Cburnett.
