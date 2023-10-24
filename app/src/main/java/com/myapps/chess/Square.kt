@@ -8,5 +8,6 @@ class Square(var row: Int, var index: Int, var backgroundColor: Char, var piece:
     var highlighted = mutableStateOf(false)
     var drawableID = 0
     var wouldBeHighlighted = false
+    var whiteHighlighted = mutableStateOf(false)
 
 }

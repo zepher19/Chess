@@ -34,8 +34,10 @@ class BoardModel {
 
     fun unhighlight() {
         for (x in currentBoard)
-            for (y in x)
+            for (y in x) {
                 y.highlighted.value = false
+                y.whiteHighlighted.value = false
+            }
     }
 
 

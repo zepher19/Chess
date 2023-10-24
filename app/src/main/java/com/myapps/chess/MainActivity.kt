@@ -138,6 +138,17 @@ fun chooseModifier(y: Square): Modifier {
         .padding(borderWidth)
         .clip(RectangleShape)
 
+
+    val modifierWhiteHighlight = Modifier
+        .size(40.dp)
+        .clickable {
+            highlightSquares(y)
+        }
+        .border(BorderStroke(borderWidth, Color.White), RectangleShape)
+        .padding(borderWidth)
+        .clip(RectangleShape)
+
+
     val modifierNormal = Modifier
         .size(40.dp)
         .clickable {
@@ -146,7 +157,8 @@ fun chooseModifier(y: Square): Modifier {
 
     if (y.highlighted.value)
         return modifierHighlight
-
+    else if (y.whiteHighlighted.value)
+        return modifierWhiteHighlight
     else
         return modifierNormal
 }
@@ -291,14 +303,18 @@ fun determineSquareImage(y: Square) {
 
 fun highlightSquares(y: Square) {
 
-    if (y.piece.pieceColor != boardModel.playerTurn && previousHighlightedSquare == DEFAULT_SQUARE) {
+    //prevent selection of enemy pieces
+    if (!y.highlighted.value && y.piece.pieceColor != boardModel.playerTurn) {
+        boardModel.unhighlight()
         return
     }
 
-
-    //prevents empty spaces from being highlighted
-    if (y.piece.pieceColor == '0' && previousHighlightedSquare.piece.pieceColor == '0')
+    //deselect by clicking a white highlighted piece
+    if (y.whiteHighlighted.value) {
+        boardModel.unhighlight()
         return
+    }
+
 
     //prevents pieces from deleting their own color
     if (y.piece.pieceColor == previousHighlightedSquare.piece.pieceColor) {
@@ -312,7 +328,6 @@ fun highlightSquares(y: Square) {
     }
 
 
-
     //if already highlighted, move instead
     if (y.highlighted.value) {
         movePiece(y)
@@ -320,11 +335,10 @@ fun highlightSquares(y: Square) {
     }
 
 
-
-
-
     boardModel.unhighlight()
-    y.highlighted.value = true
+    if (y.piece.pieceType != '0') {
+        y.whiteHighlighted.value = true
+    }
 
     highlightMoves(y)
 }
@@ -370,12 +384,12 @@ fun movePiece(y: Square) {
         enemy = 'w'
     }
 
-    //if king moves, they must have moved out of check by virtue of moving
-    if (y.piece.pieceType == 'k') {
-        whiteCheck = false
-        blackCheck = false
-        return
-    }
+
+
+    whiteCheck = false
+    blackCheck = false
+    
+
 
 
     if (y.piece.pieceColor == 'w') {
@@ -386,8 +400,6 @@ fun movePiece(y: Square) {
     }
 
     switchPlayers()
-    Log.d("sdf", boardModel.playerTurn.toString())
-
 }
 
 fun switchPlayers() {
